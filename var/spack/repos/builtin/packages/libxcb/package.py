@@ -31,24 +31,32 @@ class Libxcb(AutotoolsPackage, XorgPackage):
         deprecated=True,
     )
 
+    variant("use_spack_interpreter", default=False, description="Use the interpreter running spack to configure")
+
     depends_on("libpthread-stubs")
     depends_on("libxau@0.99.2:")
     depends_on("libxdmcp")
 
     # libxcb 1.X requires xcb-proto >= 1.X
-    depends_on("xcb-proto")
+    depends_on("xcb-proto +use_spack_interpreter", when="+use_spack_interpreter")
+    depends_on("xcb-proto ~use_spack_interpreter", when="~use_spack_interpreter")
     depends_on("xcb-proto@1.17:", when="@1.17")
     depends_on("xcb-proto@1.16:", when="@1.16")
     depends_on("xcb-proto@1.15:", when="@1.15")
     depends_on("xcb-proto@1.14:", when="@1.14")
     depends_on("xcb-proto@1.13:", when="@1.13")
 
-    depends_on("python", type="build")
+    depends_on("python", type="build", when="~use_spack_interpreter")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 
     def configure_args(self):
         config_args = []
+
+        # use spack interpreter to avoid dependency cycles
+        if self.spec.satisfies("+use_spack_interpreter"):
+            config_args.append(f"--with-python_prefix={sys.prefix}")
+            config_args.append(f"--with-python_exec_prefix={sys.exec_prefix}")
 
         # -Werror flags are not properly interpreted by the NVIDIA compiler
         if self.spec.satisfies("%nvhpc@:20.11"):
