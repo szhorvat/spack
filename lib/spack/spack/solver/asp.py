@@ -853,7 +853,8 @@ class PyclingoDriver:
         if spack.config.CONFIG.get("concretizer:duplicates:strategy", "none") != "none":
             self.control.load(os.path.join(parent_dir, "heuristic_separate.lp"))
         self.control.load(os.path.join(parent_dir, "display.lp"))
-        self.control.load(os.path.join(parent_dir, "variant_propagation.lp"))
+        if setup.use_variant_propagation:
+            self.control.load(os.path.join(parent_dir, "variant_propagation.lp"))
         if not setup.concretize_everything:
             self.control.load(os.path.join(parent_dir, "when_possible.lp"))
 
@@ -1071,6 +1072,9 @@ class SpackSolverSetup:
 
         # If False allows for input specs that are not solved
         self.concretize_everything = True
+
+        # Track whether we should load variant propagation logic
+        self.use_variant_propagation = False
 
         # Set during the call to setup
         self.pkgs: Set[str] = set()
@@ -1942,6 +1946,7 @@ class SpackSolverSetup:
                 clauses.append(f.variant_value(spec.name, vname, value))
 
                 if variant.propagate:
+                    self.use_variant_propagation = True
                     clauses.append(
                         f.variant_propagation_candidate(spec.name, vname, value, spec.name)
                     )
@@ -2477,6 +2482,9 @@ class SpackSolverSetup:
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]
+
+        # reset variant propagation tracker
+        self.use_variant_propagation = False
 
         # Fail if we already know an unreachable node is requested
         for spec in specs:
