@@ -7,7 +7,7 @@
 attr("variant_propagation_candidate", PackageNode, Variant, Value, Source) :-
   attr("node", PackageNode),
   depends_on(ParentNode, PackageNode),
-  attr("variant_value_id", node(_, Source), Variant, Value, VariantID),
+  attr("variant_selected", node(_, Source), Variant, Value, _, _),
   attr("variant_propagation_candidate", ParentNode, Variant, _, Source).
 
 % If the node is a candidate, and it has the variant and value,
@@ -19,16 +19,17 @@ attr("variant_propagate", node(ID, Package), Variant, Value, Source) :-
   not attr("variant_set", node(ID, Package), Variant).
 
 % Propagate the value, if there is the corresponding attribute
-attr("variant_value_id", PackageNode, Variant, Value, VariantID) :-
-  node_has_variant(PackageNode, Variant, VariantID),
-  attr("variant_propagate", PackageNode, Variant, Value, _).
+attr("variant_selected", node(ID, Package), Variant, Value, VariantType, VariantID) :-
+  node_has_variant(node(ID, Package), Variant, VariantID),
+  pkg_fact(Package, variant_type(VariantID, VariantType)),
+  attr("variant_propagate", node(ID, Package), Variant, Value, _).
 
 % If a variant is propagated, we cannot have extraneous values (this is for multi valued variants)
 variant_is_propagated(PackageNode, Variant) :-
   attr("variant_propagate", PackageNode, Variant, _, _).
 
 :- variant_is_propagated(PackageNode, Variant),
-   attr("variant_value_id", PackageNode, Variant, Value, _),
+   attr("variant_selected", PackageNode, Variant, Value, _),
    not attr("variant_propagate", PackageNode, Variant, Value, _).
 
 % Cannot receive different values from different sources on the same variant
