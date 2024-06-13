@@ -21,7 +21,7 @@ attr("variant_propagate", node(ID, Package), Variant, Value, Source) :-
 % Propagate the value, if there is the corresponding attribute
 attr("variant_selected", node(ID, Package), Variant, Value, VariantType, VariantID) :-
   node_has_variant(node(ID, Package), Variant, VariantID),
-  pkg_fact(Package, variant_type(VariantID, VariantType)),
+  variant_type(VariantID, VariantType),
   attr("variant_propagate", node(ID, Package), Variant, Value, _).
 
 % If a variant is propagated, we cannot have extraneous values (this is for multi valued variants)
