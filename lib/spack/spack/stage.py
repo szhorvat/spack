@@ -346,8 +346,6 @@ class Stage(LockableStagingDir):
     similar, and are intended to persist for only one run of spack.
     """
 
-    #: Most staging is managed by Spack. DevelopStage is one exception.
-    needs_fetching = True
     requires_patch_success = True
 
     def __init__(
@@ -772,7 +770,6 @@ class StageComposite(pattern.Composite):
                 "cache_mirror",
                 "steal_source",
                 "disable_mirrors",
-                "needs_fetching",
                 "requires_patch_success",
             ]
         )
@@ -823,7 +820,6 @@ class StageComposite(pattern.Composite):
 
 
 class DevelopStage(LockableStagingDir):
-    needs_fetching = False
     requires_patch_success = False
 
     def __init__(self, name, dev_path, reference_link):
